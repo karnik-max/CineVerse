@@ -1,4 +1,5 @@
 import sqlite3
+import tempfile
 from pathlib import Path
 
 
@@ -10,10 +11,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATA_DIR = BASE_DIR / "data"
 
-DATA_DIR.mkdir(
-    parents=True,
-    exist_ok=True
-)
+try:
+    DATA_DIR.mkdir(
+        parents=True,
+        exist_ok=True
+    )
+except Exception:
+    pass
 
 DB_PATH = DATA_DIR / "cineverse.db"
 
@@ -23,13 +27,24 @@ DB_PATH = DATA_DIR / "cineverse.db"
 # ==========================================================
 
 def get_connection():
-    connection = sqlite3.connect(
-        DB_PATH
-    )
-
-    connection.row_factory = sqlite3.Row
-
-    return connection
+    try:
+        connection = sqlite3.connect(
+            DB_PATH,
+            timeout=10
+        )
+        connection.row_factory = sqlite3.Row
+        # Quick write test to verify database is writable
+        connection.execute("PRAGMA foreign_keys = ON;")
+        return connection
+    except Exception:
+        # Fallback to writable temporary directory DB if project DB file is read-only
+        tmp_db = Path(tempfile.gettempdir()) / "cineverse.db"
+        connection = sqlite3.connect(
+            tmp_db,
+            timeout=10
+        )
+        connection.row_factory = sqlite3.Row
+        return connection
 
 
 # ==========================================================
@@ -38,57 +53,60 @@ def get_connection():
 
 def initialize_database():
 
-    connection = get_connection()
+    try:
+        connection = get_connection()
 
-    cursor = connection.cursor()
+        cursor = connection.cursor()
 
-    # ----------------------------------------------
-    # Users
-    # ----------------------------------------------
+        # ----------------------------------------------
+        # Users
+        # ----------------------------------------------
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS users (
-            user_id TEXT PRIMARY KEY,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
         )
-        """
-    )
 
-    # ----------------------------------------------
-    # Ratings
-    # ----------------------------------------------
+        # ----------------------------------------------
+        # Ratings
+        # ----------------------------------------------
 
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS ratings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS ratings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            user_id TEXT NOT NULL,
+                user_id TEXT NOT NULL,
 
-            canonical_movie_id INTEGER NOT NULL,
+                canonical_movie_id INTEGER NOT NULL,
 
-            rating INTEGER NOT NULL
-                CHECK(rating >= 1 AND rating <= 5),
+                rating INTEGER NOT NULL
+                    CHECK(rating >= 1 AND rating <= 5),
 
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-            UNIQUE(
-                user_id,
-                canonical_movie_id
-            ),
+                UNIQUE(
+                    user_id,
+                    canonical_movie_id
+                ),
 
-            FOREIGN KEY(user_id)
-                REFERENCES users(user_id)
+                FOREIGN KEY(user_id)
+                    REFERENCES users(user_id)
+            )
+            """
         )
-        """
-    )
 
-    connection.commit()
+        connection.commit()
 
-    connection.close()
+        connection.close()
+    except Exception as error:
+        print(f"Warning: Database initialization notice ({error}).")
 
 
 # ==========================================================
