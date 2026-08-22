@@ -34,10 +34,4 @@ pnpm-debug.log*
 
 # Local TMDB cache
 data/tmdb_cache.json
-
-# Large files for GitHub
-data/movies_dataset.csv
-model/artifacts/movie_model.pkl
-
-# Generated notebook artifacts
-notebooks/model/artifacts/
+
