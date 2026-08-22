@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 
-const API_BASE = "http://127.0.0.1:5000";
+import { API_BASE } from "../config";
 
 
 function shuffleArray(array) {

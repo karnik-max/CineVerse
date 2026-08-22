@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 
-const API_BASE = "http://127.0.0.1:5000";
+import { API_BASE } from "../config";
 
 
 function MovieDetails() {

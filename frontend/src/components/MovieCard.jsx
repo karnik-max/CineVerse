@@ -11,8 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { formatMovieTitle } from "../utils/movieTitle";
 
 
-const API_BASE =
-  "http://127.0.0.1:5000";
+import { API_BASE } from "../config";
 
 const TABLET_WIDTH = 420;
 const TABLET_HEIGHT = 236;

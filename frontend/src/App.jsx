@@ -9,7 +9,7 @@ import GenreDropdown from "./components/GenreDropdown";
 import MovieCarousel from "./components/MovieCarousel";
 
 
-const API_BASE = "http://127.0.0.1:5000";
+import { API_BASE } from "./config";
 
 
 /* =========================================================
