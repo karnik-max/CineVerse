@@ -298,7 +298,7 @@ def get_tmdb_movie_data(tmdb_id):
         response = requests.get(
             url,
             headers=headers,
-            timeout=10
+            timeout=3
         )
 
 
