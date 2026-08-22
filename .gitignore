@@ -1,0 +1,43 @@
+# Environment / secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Node / React
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Local TMDB cache
+data/tmdb_cache.json
+
+# Large files for GitHub
+data/movies_dataset.csv
+model/artifacts/movie_model.pkl
+
+# Generated notebook artifacts
+notebooks/model/artifacts/
