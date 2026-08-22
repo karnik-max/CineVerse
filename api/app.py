@@ -958,6 +958,20 @@ def add_tmdb_metadata(df):
 
 
 # ==========================================================
+# HEALTH CHECK / ROOT
+# ==========================================================
+
+@app.route("/", methods=["GET", "HEAD"])
+@app.route("/health", methods=["GET", "HEAD"])
+def health_check():
+    return jsonify({
+        "status": "ok",
+        "service": "CineVerse API",
+        "movies_count": len(movies)
+    }), 200
+
+
+# ==========================================================
 # GET MOVIES
 # ==========================================================
 
