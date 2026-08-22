@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -6,11 +13,11 @@ import os
 import requests
 import json
 
-from pathlib import Path
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
-from .database import (
+from api.database import (
     initialize_database,
     create_user_if_not_exists,
     save_rating,
