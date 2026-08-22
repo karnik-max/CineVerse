@@ -798,6 +798,13 @@ def add_tmdb_metadata(df):
         return df
 
 
+    if not TMDB_API_TOKEN:
+        df["poster_url"] = None
+        df["backdrop_url"] = None
+        df["overview"] = None
+        df["tmdb_title"] = None
+        return df
+
     # ------------------------------------------------------
     # Default result
     # ------------------------------------------------------
