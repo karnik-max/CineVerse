@@ -982,8 +982,7 @@ def health_check():
 )
 def get_movies():
 
-    try:
-        df = movies.copy()
+    df = movies.copy()
 
 
     # ------------------------------------------------------
@@ -1065,6 +1064,41 @@ def get_movies():
             drop=True
         )
 
+
+    user_id = request.args.get("user_id", "").strip()
+    user_ratings_map = {}
+    fav_genres = set()
+    disliked_genres = set()
+
+    if user_id:
+        try:
+            stored_ratings = get_user_ratings(user_id)
+            for r in stored_ratings:
+                cid = r.get("canonical_movie_id")
+                val = r.get("rating")
+                if cid is not None and val is not None:
+                    user_ratings_map[cid] = val
+                    m_rows = df[df["canonical_movie_id"] == cid]
+                    if not m_rows.empty:
+                        g_str = str(m_rows.iloc[0].get("genres", ""))
+                        g_list = [g.strip().lower() for g in g_str.split("|") if g.strip()]
+                        if val >= 4:
+                            fav_genres.update(g_list)
+                        elif val <= 2:
+                            disliked_genres.update(g_list)
+        except Exception as e:
+            print(f"Warning: Could not fetch user ratings: {e}")
+
+    if user_ratings_map and not random_mode and not search and (fav_genres or disliked_genres):
+        def calc_personalized_score(row):
+            base_score = float(row.get("imdb_rating", 0) or 0)
+            row_g = [g.strip().lower() for g in str(row.get("genres", "")).split("|") if g.strip()]
+            fav_overlap = len(set(row_g).intersection(fav_genres))
+            disliked_overlap = len(set(row_g).intersection(disliked_genres))
+            return base_score + (fav_overlap * 3.0) - (disliked_overlap * 4.0)
+
+        df["p_score"] = df.apply(calc_personalized_score, axis=1)
+        df = df.sort_values("p_score", ascending=False)
 
     elif "imdb_rating" in df.columns:
 
@@ -1253,14 +1287,17 @@ def get_movies():
     )
 
 
-    return jsonify(
-        df.to_dict(
-            orient="records"
-        )
-    )
-    except Exception as err:
-        print(f"Error in get_movies: {err}")
-        return jsonify({"error": str(err)}), 500
+    records = df.to_dict(orient="records")
+    if user_ratings_map:
+        for rec in records:
+            cid = rec.get("canonical_movie_id")
+            if cid in user_ratings_map:
+                rec["user_rating"] = user_ratings_map[cid]
+            else:
+                rec["user_rating"] = None
+            rec["is_personalized"] = True
+
+    return jsonify(records)
 
 
 # ==========================================================

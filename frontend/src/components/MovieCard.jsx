@@ -12,13 +12,14 @@ import { formatMovieTitle } from "../utils/movieTitle";
 
 
 import { API_BASE } from "../config";
+import { getOrCreateUserId } from "../utils/userId";
 
 const TABLET_WIDTH = 420;
 const TABLET_HEIGHT = 236;
 const EDGE_GAP = 12;
 
 
-function MovieCard({ movie }) {
+function MovieCard({ movie, onRatingChange }) {
 
   const navigate = useNavigate();
 
@@ -39,6 +40,55 @@ function MovieCard({ movie }) {
 
   const [tabletStyle, setTabletStyle] =
     useState(null);
+
+  const [userRating, setUserRating] =
+    useState(movie?.user_rating || null);
+
+  const [hoverRating, setHoverRating] =
+    useState(0);
+
+  const [isSavingRating, setIsSavingRating] =
+    useState(false);
+
+  const [toastMsg, setToastMsg] =
+    useState("");
+
+  const handleRate = async (event, starValue) => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const userId = getOrCreateUserId();
+    setUserRating(starValue);
+    setIsSavingRating(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/rating`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          canonical_movie_id: movie.canonical_movie_id,
+          rating: starValue
+        })
+      });
+
+      if (response.ok) {
+        if (starValue >= 4) {
+          setToastMsg(`★ ${starValue}-Star Saved! Customizing feed...`);
+        } else {
+          setToastMsg(`Saved. We'll show fewer movies like this.`);
+        }
+        setTimeout(() => setToastMsg(""), 3000);
+        if (onRatingChange) {
+          onRatingChange(movie.canonical_movie_id, starValue);
+        }
+      }
+    } catch (err) {
+      console.error("Error saving rating:", err);
+    } finally {
+      setIsSavingRating(false);
+    }
+  };
 
 
   // =====================================================
@@ -626,13 +676,21 @@ function MovieCard({ movie }) {
 
           <div className="poster-info">
 
-            {movie.imdb_rating && (
+            <div className="card-top-badges">
+              {movie.imdb_rating && (
 
-              <div className="poster-rating">
-                ⭐ {movie.imdb_rating}
-              </div>
+                <div className="poster-rating">
+                  ⭐ {movie.imdb_rating}
+                </div>
 
-            )}
+              )}
+
+              {userRating && (
+                <div className="user-has-rated-badge">
+                  Your Rating: ★ {userRating}
+                </div>
+              )}
+            </div>
 
 
             <h3>
@@ -646,6 +704,31 @@ function MovieCard({ movie }) {
                 {formatted.year}
               </span>
 
+            )}
+
+            <div className="card-user-rating-widget" onClick={(e) => e.stopPropagation()}>
+              <span className="rating-label">Rate:</span>
+              <div className="star-rating-stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className={`star-btn ${star <= (hoverRating || userRating || 0) ? "active" : ""}`}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    onClick={(e) => handleRate(e, star)}
+                    title={`Rate ${star} star${star > 1 ? "s" : ""}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {toastMsg && (
+              <div className="card-toast-feedback">
+                {toastMsg}
+              </div>
             )}
 
           </div>

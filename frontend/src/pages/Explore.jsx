@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import MovieCard from "../components/MovieCard";
 
 import { API_BASE } from "../config";
+import { getOrCreateUserId } from "../utils/userId";
 
 
 /* =========================================================
@@ -108,9 +109,10 @@ function Explore() {
 
     try {
 
+      const userId = getOrCreateUserId();
       const response =
         await fetch(
-          `${API_BASE}/api/movies?limit=100&random=true`
+          `${API_BASE}/api/movies?limit=100&user_id=${encodeURIComponent(userId)}`
         );
 
 

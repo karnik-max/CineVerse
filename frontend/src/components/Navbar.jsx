@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import Logo from "./Logo";
 
 function Navbar() {
   return (
@@ -6,15 +7,9 @@ function Navbar() {
 
       <Link
         to="/"
-        className="brand"
+        className="brand-link"
       >
-        <span className="brand-mark">
-          C
-        </span>
-
-        <span className="brand-name">
-          CineVerse
-        </span>
+        <Logo />
       </Link>
 
 

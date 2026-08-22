@@ -10,6 +10,7 @@ import MovieCarousel from "./components/MovieCarousel";
 
 
 import { API_BASE } from "./config";
+import { getOrCreateUserId } from "./utils/userId";
 
 
 /* =========================================================
@@ -136,6 +137,11 @@ function App() {
       params.set(
         "limit",
         "100"
+      );
+
+      params.set(
+        "user_id",
+        getOrCreateUserId()
       );
 
 
