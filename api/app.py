@@ -127,27 +127,28 @@ def save_tmdb_cache():
     repeatedly request the same movie.
     """
 
-    try:
+    with cache_lock:
+        try:
 
-        with open(
-            TMDB_CACHE_FILE,
-            "w",
-            encoding="utf-8"
-        ) as file:
+            with open(
+                TMDB_CACHE_FILE,
+                "w",
+                encoding="utf-8"
+            ) as file:
 
-            json.dump(
-                TMDB_CACHE,
-                file,
-                indent=2,
-                ensure_ascii=False
+                json.dump(
+                    TMDB_CACHE,
+                    file,
+                    indent=2,
+                    ensure_ascii=False
+                )
+
+        except OSError as error:
+
+            print(
+                "Warning: Could not save "
+                f"TMDB cache: {error}"
             )
-
-    except OSError as error:
-
-        print(
-            "Warning: Could not save "
-            f"TMDB cache: {error}"
-        )
 
 
 # ==========================================================
@@ -981,7 +982,8 @@ def health_check():
 )
 def get_movies():
 
-    df = movies.copy()
+    try:
+        df = movies.copy()
 
 
     # ------------------------------------------------------
@@ -1256,6 +1258,9 @@ def get_movies():
             orient="records"
         )
     )
+    except Exception as err:
+        print(f"Error in get_movies: {err}")
+        return jsonify({"error": str(err)}), 500
 
 
 # ==========================================================
