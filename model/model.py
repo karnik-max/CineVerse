@@ -19,10 +19,18 @@ ARTIFACT_DIR = BASE_DIR / "artifacts"
 # Load trained model and data
 # ==================================================
 
-# Load movie master metadata (lightweight, ~68 MB RAM)
-movie_master = pd.read_csv(
-    ARTIFACT_DIR / "movie_master.csv"
-)
+# Load movie master metadata (ultra-lightweight, ~4 MB RAM)
+_slim_cols = [
+    "canonical_movie_id", "Movie_Name", "year", "genres", 
+    "imdb_rating", "director", "actor_1", "actor_2", "actor_3", 
+    "tmdb_id", "imdb_link", "metadata_status"
+]
+_raw_master = pd.read_csv(ARTIFACT_DIR / "movie_master.csv")
+_use_cols = [c for c in _slim_cols if c in _raw_master.columns]
+movie_master = _raw_master[_use_cols].copy()
+del _raw_master
+import gc
+gc.collect()
 
 # Lazy-loaded holders for heavy ML artifacts
 model = None

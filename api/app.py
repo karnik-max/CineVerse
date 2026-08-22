@@ -768,9 +768,7 @@ initialize_database()
 # LOAD MOVIE MASTER
 # ==========================================================
 
-movies = (
-    movie_master.copy()
-)
+movies = movie_master
 
 
 movies = (
